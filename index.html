@@ -1,1 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Momentos Especiales ❤️</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #ffffff;
+      --pink: #ffd6e7;
+      --heart: #ff2b4f;
+      --shadow: rgba(255, 43, 79, 0.6);
+      --messageBoxBg: rgba(139, 69, 119, 0.6);
+    }
 
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: "Sour Gummy", sans-serif;
+      color: var(--fg);
+      background: linear-gradient(to bottom, #000000, #2a3a6b);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* --- REPRODUCTOR DE MÚSICA --- */
+    .music-player {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      background: var(--messageBoxBg);
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,214,231,.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      transition: all 0.5s ease;
+      opacity: 0;
+    }
+    .music-player.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .play-pause-btn {
+      background: var(--heart);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- CORAZÓN PRINCIPAL --- */
+    .heart-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      filter: drop-shadow(0 0 30px var(--shadow));
+      transition: transform 0.1s;
+      z-index: 2;
+    }
+    .heart-btn:active { transform: scale(0.9); }
+    .heart-svg { width: clamp(200px, 30vmin, 400px); animation: beat 2.5s infinite; }
+    
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* --- ELEMENTOS QUE SALTAN (TEXTO Y FOTOS) --- */
+    .pop-element {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 10;
+      will-change: transform, opacity;
+      animation: shootAndFall var(--duration) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    .phrase-pop {
+      padding: 0.8em 1.4em;
+      background: var(--messageBoxBg);
+      border-radius: 25px;
+      color: var(--pink);
+      font-weight: bold;
+      white-space: nowrap;
+      border: 1px solid rgba(255,214,231,0.3);
+    }
+
+    .photo-pop {
+      width: 120px;
+      height: 120px;
+      border: 5px solid white;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    @keyframes shootAndFall {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      15% { opacity: 1; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.1); }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) scale(0.7) rotate(var(--rot)); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scene" id="scene">
+    <div class="music-player" id="musicPlayer">
+      <button class="play-pause-btn" id="playBtn">▶</button>
+      <div style="font-size: 13px;">Nuestra canción ❤️</div>
+    </div>
+
+    <button class="heart-btn" id="heartBtn">
+      <svg class="heart-svg" viewBox="0 0 200 180">
+        <path fill="#ff2b4f" d="M100,162.2C17.7,99.5,6,77.5,6,52.3C6,27.1,27.1,6,52.3,6c15.4,0,30.8,7.7,40,20.6l7.7,9.6l7.7-9.6 c9.2-12.9,24.6-20.6,40-20.6c25.2,0,46.3,21.1,46.3,46.3c0,25.2-11.7,47.2-94,109.9L100,162.2z"/>
+      </svg>
+    </button>
+  </div>
+
+  <audio id="audio" loop>
+    <source src="https://www.dropbox.com/scl/fi/v8dbihkx7pj30lmjt2kxk/SHE-LOOKS-LIKE-A-DREAM.mp3?rlkey=q951cxdk40i49tsr95d7l5s3e&st=m45mplf6&dl=1" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const frases = ["Te amo ✨", "Eres mi vida 💖", "Contigo siempre 🌙", "Mi lugar favorito 🏠"];
+    
+    // EJEMPLO DE FOTOS: Sustituye estos links por los de tus fotos
+    const fotos = [
+      "https://picsum.photos/200/200?random=1",
+      "https://picsum.photos/200/200?random=2",
+      "https://picsum.photos/200/200?random=3"
+    ];
+
+    const heartBtn = document.getElementById('heartBtn');
+    const audio = document.getElementById('audio');
+    const musicPlayer = document.getElementById('musicPlayer');
+    let firstClick = true;
+
+    heartBtn.addEventListener('click', () => {
+      if (firstClick) {
+        musicPlayer.classList.add('active');
+        audio.play();
+        firstClick = false;
+      }
+      
+      // Decidir si sale foto o texto (50% probabilidad)
+      if (Math.random() > 0.5) {
+        crearElemento('texto');
+      } else {
+        crearElemento('foto');
+      }
+    });
+
+    function crearElemento(tipo) {
+      const el = document.createElement(tipo === 'foto' ? 'img' : 'div');
+      el.className = 'pop-element ' + (tipo === 'foto' ? 'photo-pop' : 'phrase-pop');
+      
+      if (tipo === 'foto') {
+        el.src = fotos[Math.floor(Math.random() * fotos.length)];
+      } else {
+        el.textContent = frases[Math.floor(Math.random() * frases.length)];
+      }
+
+      // Posición inicial (centro del corazón)
+      const rect = heartBtn.getBoundingClientRect();
+      el.style.left = (rect.left + rect.width / 2) + 'px';
+      el.style.top = (rect.top + rect.height / 2) + 'px';
+
+      // Variables de animación aleatorias
+      const tx = (Math.random() - 0.5) * 300; // Salto inicial X
+      const ty = -Math.random() * 200 - 100;  // Salto inicial Y (hacia arriba)
+      const fx = tx + (Math.random() - 0.5) * 200; // Caída final X
+      const fy = 500; // Caída final Y
+      const rot = Math.random() * 360;
+      const dur = Math.random() * 2 + 3;
+
+      el.style.setProperty('--tx', tx + 'px');
+      el.style.setProperty('--ty', ty + 'px');
+      el.style.setProperty('--fx', fx + 'px');
+      el.style.setProperty('--fy', fy + 'px');
+      el.style.setProperty('--rot', rot + 'deg');
+      el.style.setProperty('--duration', dur + 's');
+
+      document.getElementById('scene').appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000);
+    }
+
+    // Botón Play/Pausa
+    document.getElementById('playBtn').addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        document.getElementById('playBtn').textContent = '⏸';
+      } else {
+        audio.pause();
+        document.getElementById('playBtn').textContent = '▶';
+      }
+    });
+  </script>
+</body>
+</html>
